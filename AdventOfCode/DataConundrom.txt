@@ -1,0 +1,122 @@
+// See https://aka.ms/new-console-template for more information
+/**---Day 2: Cube Conundrum ---
+You're launched high into the atmosphere! The apex of your trajectory just barely reaches the surface of a large island floating in the sky. You gently land in a fluffy pile of leaves. It's quite cold, but you don't see much snow. An Elf runs over to greet you.
+The Elf explains that you've arrived at Snow Island and apologizes for the lack of snow. He'll be happy to explain the situation, but it's a bit of a walk, so you have some time. They don't get many visitors up here; would you like to play a game in the meantime?
+As you walk, the Elf shows you a small bag and some cubes which are either red, green, or blue. Each time you play this game, he will hide a secret number of cubes of each color in the bag, and your goal is to figure out information about the number of cubes.
+To get information, once a bag has been loaded with cubes, the Elf will reach into the bag, grab a handful of random cubes, show them to you, and then put them back in the bag. He'll do this a few times per game.
+You play several games and record the information from each game (your puzzle input). Each game is listed with its ID number (like the 11 in Game 11: ...) followed by a semicolon-separated list of subsets of cubes that were revealed from the bag (like 3 red, 5 green, 4 blue).
+For example, the record of a few games might look like this:
+Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+In game 1, three sets of cubes are revealed from the bag (and then put back again). The first set is 3 blue cubes and 4 red cubes; the second set is 1 red cube, 2 green cubes, and 6 blue cubes; the third set is only 2 green cubes.
+The Elf would first like to know which games would have been possible if the bag contained only 12 red cubes, 13 green cubes, and 14 blue cubes?
+In the example above, games 1, 2, and 5 would have been possible if the bag had been loaded with that configuration. However, game 3 would have been impossible because at one point the Elf showed you 20 red cubes at once; similarly, game 4 would also have been impossible because the Elf showed you 15 blue cubes at once. If you add up the IDs of the games that would have been possible, you get 8.
+Determine which games would have been possible if the bag had been loaded with only 12 red cubes, 13 green cubes, and 14 blue cubes. What is the sum of the IDs of those games?**/
+
+int redLimit = 12;
+int greenLimit = 13;
+int blueLimit = 14;
+
+string filePath = "C:\\Users\\Julisa\\source\\repos\\AdventOfCode\\AdventOfCode\\day2_conundrom.txt";
+List<List<string>> games = ReadGamesFromFilePath(filePath);
+Console.WriteLine(games.Count);
+
+List<int> possibleGames = FindPossibleGames(games, redLimit, greenLimit, blueLimit);
+
+int sumOfIds = 0;
+foreach (int id in possibleGames)
+{
+    Console.WriteLine($"Game {id + 1} is possible.");
+    sumOfIds += id + 1;
+}
+
+Console.WriteLine($"Sum of IDs of possible games: {sumOfIds}");
+
+
+List<int> FindPossibleGames(List<List<string>> games, int redLimit, int greenLimit, int blueLimit)
+{
+    List<int> possibleGames = new List<int>();
+    for (int i = 0; i < games.Count; i++)
+    {
+        if (isPossibleGames(games[i], redLimit, greenLimit, blueLimit))
+        {
+            possibleGames.Add(i);
+        }
+    }
+    return possibleGames;
+}
+
+static bool isPossibleGames(List<string> game, int redLimit, int greenLimit, int blueLimit)
+{
+    int redCount = 0;
+    int greenCount = 0;
+    int blueCount = 0;
+
+    foreach (var subset in game)
+    {
+        int subsetRed = CountCubes(subset, "red");
+        int subsetGreen = CountCubes(subset, "green");
+        int subsetBlue = CountCubes(subset, "blue");
+
+        redCount += subsetRed;
+        greenCount += subsetGreen;
+        blueCount += subsetBlue;
+
+        //check if counts exceed the limits
+        if (redCount > redLimit || greenCount > greenLimit || blueCount > blueLimit)
+        {
+            return false;
+        }
+    }
+    return redCount == redLimit && greenCount == greenLimit && blueCount == blueLimit;
+}
+
+static int CountCubes(string subset, string cubeColor)
+{
+    // Split the subset by commas and spaces
+    string[] cubes = subset.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+    // Count the occurrences of the specified cube color
+    int count = 0;
+    foreach (var cube in cubes)
+    {
+        // Check if the cube contains the specified color
+        if (cube.Contains(cubeColor, StringComparison.OrdinalIgnoreCase))
+        {
+            // Extract the numeric quantity
+            int quantity;
+            if (int.TryParse(cube, out quantity))
+            {
+                count += quantity;
+            }
+        }
+    }
+
+    return count;
+}
+
+
+static List<List<string>> ReadGamesFromFilePath(string filePath)
+{
+    List<List<string>> games = new List<List<string>>();
+    try
+    {
+        using (StreamReader reader = new StreamReader(filePath))
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                List<string> list = new List<string>(line.Split(';'));
+                games.Add(list);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error reading the file" + ex.Message);
+    }
+    return games;
+}
